@@ -1,0 +1,18 @@
+# Personal study + presentation notes (not part of the published project)
+docs/
+
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Python caches / test caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Editor / OS clutter
+.vscode/
+.idea/
+.DS_Store
+*.swp
