@@ -38,7 +38,7 @@ Tested with Python 3.13, qiskit 2.6.2, qiskit-aer 0.18.2, numpy 2.5.4, matplotli
 
 ```bash
 .venv/bin/python run_all.py      # everything, ~20 s, fixed seed 1234, 8192 shots
-.venv/bin/python -m pytest -q    # 55 tests
+.venv/bin/python -m pytest -q    # 62 tests
 ```
 Outputs go to `outputs/`. `results.txt` holds the full log, `01..07_*.txt` hold the individual sections, and the `*.png` files are the figures.
 
@@ -51,7 +51,25 @@ Outputs go to `outputs/`. `results.txt` holds the full log, `01..07_*.txt` hold 
 | `src/grover.py` | H prep, diffuser (H X CCZ X H), iteration rule, AerSimulator runs, classical re-check |
 | `src/policy.py` | safe `ast` policy parser, `PhaseOracleGate` oracle with diagonal check, K=0 handling |
 | `src/theory.py` | amplitude algebra, sin²((2t+1)θ), Wilson CIs and 3σ flags, ablation analysis, cost text |
-| `src/plots.py` | amplitude bars, success curves, rotation geometry, histograms, ablation figure |
+| `src/linalg.py` | Grover as explicit linear algebra: column vectors, gate matrices, O, D = 2\|s⟩⟨s\| − I, G = D·O, 2×2 rotation, cross-checks vs Qiskit |
+| `src/plots.py` | amplitude bars, success curves, rotation geometry, histograms, ablation, gate-matrix and G = D·O figures |
+
+## Linear-algebra view (`src/linalg.py`)
+
+Everything is also written as plain NumPy matrices and checked against the Qiskit circuits
+(`outputs/08_linear_algebra.txt`, `outputs/gate_matrices.png`, `outputs/linear_algebra.png`):
+
+* **Variables are column vectors:** |0⟩ = [1,0]ᵀ, |1⟩ = [0,1]ᵀ, and |W A P⟩ = |W⟩ ⊗ |A⟩ ⊗ |P⟩ is 8×1, with a single 1 at row
+  P + 2A + 4W.
+* **Gates are matrices** (X, H, Z, CX 4×4, CCX 8×8, CCZ), and **a circuit is their product**, M = U_last ⋯ U_1.
+  The kick qubit |−⟩ = HX|0⟩ is an eigenvector of X with eigenvalue −1.
+* **The oracle** is O = diag(1,1,1,−1,−1,1,−1,1). The product of V1's 31 gate matrices (256×256) and of V2's 15 (32×32)
+  both reduce to O on the helpers-|0⟩ block, and the V1 product equals Qiskit's `Operator`.
+* **The diffuser** is D = 2|s⟩⟨s| − I (−0.75 on the diagonal, 0.25 elsewhere). The gate product H X CCZ X H gives −D, which differs only by a global phase.
+* **One iteration** is G = D·O, and G|s⟩ has valid entries 0.530 and invalid entries −0.177, so P = 0.84375. In the {|U⟩,|M⟩} basis G is
+  the rotation matrix [[cos2θ, −sin2θ],[sin2θ, cos2θ]] with eigenvalues e^(±i2θ).
+* Gᵗ|s⟩ matches sin²((2t+1)θ) and Qiskit's statevector for t = 0…4 and K = 3, 2, 1 (17/17 checks pass).
+* Without uncomputation, the oracle's helpers-|0⟩ block is the zero matrix.
 
 ## Oracles (Task A.2)
 
