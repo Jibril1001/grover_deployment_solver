@@ -198,3 +198,78 @@ def plot_ablation(counts_ok, counts_bad, succ_ok, succ_bad, predicted, path):
     fig.tight_layout()
     fig.savefig(path, dpi=150)
     plt.close(fig)
+
+
+# ---------------------------------------------------------- linear algebra
+def plot_linear_algebra(path: str):
+    """Heatmaps of O, D = 2|s><s| - I and G = D O, plus the 8x1 column vectors."""
+    from matplotlib.colors import LinearSegmentedColormap
+    from . import linalg as la
+    cmap = LinearSegmentedColormap.from_list("div", [ORANGE, "#f1f0ec", BLUE])
+    O, D = la.oracle_matrix(), la.diffuser_matrix()
+    G = D @ O
+    s = la.uniform_state()
+    vecs = [("|s⟩", s), ("O|s⟩", O @ s), ("DO|s⟩", D @ O @ s)]
+    fig = plt.figure(figsize=(17, 5.4))
+    gs = fig.add_gridspec(1, 6, width_ratios=[3, 3, 3, 0.55, 0.55, 0.55], wspace=0.35)
+    keys = [index_to_bitstring(i) for i in range(N_STATES)]
+    for k, (title, M) in enumerate([("Oracle  O = diag((−1)^f)", O), ("Diffuser  D = 2|s⟩⟨s| − I", D),
+                                    ("One iteration  G = D·O", G)]):
+        ax = fig.add_subplot(gs[0, k])
+        ax.imshow(M, cmap=cmap, vmin=-1, vmax=1, aspect="auto")
+        for i in range(8):
+            for j in range(8):
+                v = M[i, j]
+                if abs(v) > 1e-9:
+                    ax.text(j, i, f"{v:+.2f}".replace("+1.00", "1").replace("-1.00", "−1"),
+                            ha="center", va="center", fontsize=6.5, color=INK)
+        ax.set_xticks(range(8), keys, rotation=90, fontsize=7.5)
+        ax.set_yticks(range(8), keys, fontsize=7.5)
+        ax.grid(False)
+        ax.set_title(title, loc="left", fontsize=10)
+    valid = [is_valid(index_to_config(i)) for i in range(N_STATES)]
+    for k, (title, v) in enumerate(vecs):
+        ax = fig.add_subplot(gs[0, 3 + k])
+        ax.imshow(v, cmap=cmap, vmin=-0.6, vmax=0.6, aspect="auto")
+        for i in range(8):
+            ax.text(0, i, f"{v[i, 0]:+.3f}", ha="center", va="center", fontsize=7,
+                    color=INK, fontweight="bold" if valid[i] else "normal")
+        ax.set_xticks([])
+        ax.set_yticks(range(8), keys if k == 0 else [""] * 8, fontsize=7.5)
+        ax.grid(False)
+        ax.set_title(title, fontsize=9)
+    fig.suptitle("Grover as matrices (row/column labels = Qiskit keys W A P; valid rows 011, 100, 110). "
+                 "Bold = valid entries; P(valid) = 3·0.530² = 0.844",
+                 x=0.01, ha="left", fontweight="bold", fontsize=11)
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_gate_matrices(path: str):
+    """The building blocks: X, H, Z, CX, CCX, CCZ as matrices."""
+    from matplotlib.colors import LinearSegmentedColormap
+    from . import linalg as la
+    cmap = LinearSegmentedColormap.from_list("div", [ORANGE, "#f1f0ec", BLUE])
+    items = [("X (NOT)", la.X, ["0", "1"]), ("H (Hadamard)", la.H, ["0", "1"]), ("Z", la.Z, ["0", "1"]),
+             ("CX  (basis |t c⟩)", la.CX, ["00", "01", "10", "11"]),
+             ("CCX / Toffoli  (|t c2 c1⟩)", la.CCX, [format(i, "03b") for i in range(8)]),
+             ("CCZ = H·CCX·H", la.CCZ, [format(i, "03b") for i in range(8)])]
+    fig, axes = plt.subplots(1, 6, figsize=(18, 3.9), gridspec_kw={"width_ratios": [1, 1, 1, 1.6, 2.6, 2.6]})
+    for ax, (title, M, lab) in zip(axes, items):
+        ax.imshow(M, cmap=cmap, vmin=-1, vmax=1)
+        n = M.shape[0]
+        for i in range(n):
+            for j in range(n):
+                v = M[i, j]
+                if abs(v) > 1e-9:
+                    txt = {1.0: "1", -1.0: "−1"}.get(round(v, 6), f"{v:+.3f}")
+                    ax.text(j, i, txt, ha="center", va="center", fontsize=8 if n > 2 else 10, color=INK)
+        ax.set_xticks(range(n), lab, fontsize=7.5, rotation=90 if n == 8 else 0)
+        ax.set_yticks(range(n), lab, fontsize=7.5)
+        ax.grid(False)
+        ax.set_title(title, loc="left", fontsize=10)
+    fig.suptitle("Every gate is a matrix; a circuit is the product of its gate matrices (applied right to left)",
+                 x=0.01, ha="left", fontweight="bold", fontsize=11)
+    fig.tight_layout()
+    fig.savefig(path, dpi=150)
+    plt.close(fig)

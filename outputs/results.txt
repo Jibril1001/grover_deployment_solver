@@ -345,6 +345,122 @@ the oracle a pure phase  |x> -> (-1)^f(x)|x>.
 
 
 ====================================================================================================
+LINEAR-ALGEBRA VIEW: column vectors, O, D = 2|s><s| - I, G = D O
+====================================================================================================
+Column vectors for one variable:  |0> = [1, 0]^T,  |1> = [0, 1]^T
+Example: {P:1,A:1,W:0} = |W>(x)|A>(x)|P> = |0>(x)|1>(x)|1> = |011>  -> 8x1 vector with a 1 at row 3:
+    [0, 0, 0, 1, 0, 0, 0, 0]^T
+
+H (2x2) =
+    [+0.7071 +0.7071]
+    [+0.7071 -0.7071]
+|s> = (H(x)H(x)H)|000>  (8x1):
+    [+0.3536]   |000>  {P:0,A:0,W:0}  
+    [+0.3536]   |001>  {P:1,A:0,W:0}  
+    [+0.3536]   |010>  {P:0,A:1,W:0}  
+    [+0.3536]   |011>  {P:1,A:1,W:0}  valid
+    [+0.3536]   |100>  {P:0,A:0,W:1}  valid
+    [+0.3536]   |101>  {P:1,A:0,W:1}  
+    [+0.3536]   |110>  {P:0,A:1,W:1}  valid
+    [+0.3536]   |111>  {P:1,A:1,W:1}  
+
+GATES AS MATRICES
+X =
+    [+0 +1]
+    [+1 +0]
+Z =
+    [+1 +0]
+    [+0 -1]
+CX (4x4, basis |target control>: 00,01,10,11) =
+    [+1 +0 +0 +0]
+    [+0 +0 +0 +1]
+    [+0 +0 +1 +0]
+    [+0 +1 +0 +0]
+CCX (8x8 permutation, swaps |011> and |111>) =
+    [+1 +0 +0 +0 +0 +0 +0 +0]
+    [+0 +1 +0 +0 +0 +0 +0 +0]
+    [+0 +0 +1 +0 +0 +0 +0 +0]
+    [+0 +0 +0 +0 +0 +0 +0 +1]
+    [+0 +0 +0 +0 +1 +0 +0 +0]
+    [+0 +0 +0 +0 +0 +1 +0 +0]
+    [+0 +0 +0 +0 +0 +0 +1 +0]
+    [+0 +0 +0 +1 +0 +0 +0 +0]
+CCZ = diag(1,1,1,1,1,1,1,-1);  check  H.CCX.H on the target == CCZ
+Kick qubit: |-> = H X |0> = [0.7071, -0.7071]^T,   X|-> = [-0.7071, 0.7071]^T = -|->
+A gate on some qubits of an n-qubit register is embedded as a 2^n x 2^n matrix (tensor with I);
+a circuit is the PRODUCT of its gate matrices, applied right-to-left:  M = U_last ... U_2 U_1.
+
+ORACLE FROM GATE MATRICES ONLY (no Qiskit):
+    V1: product of 31 gate matrices, each 256x256; 8x8 block with all helpers |0> has diag = [1, 1, 1, -1, -1, 1, -1, 1]
+    V2: product of 15 gate matrices, each 32x32; 8x8 block with all helpers |0> has diag = [1, 1, 1, -1, -1, 1, -1, 1]
+    BROKEN (no uncompute): its 8x8 helpers-|0> block is the ZERO matrix (max |entry| = 0): every input column lands on a row with non-zero helper bits, i.e. the oracle is no longer a diagonal +-1 matrix on the search space.
+DIFFUSER FROM GATE MATRICES:  (H(x)3)(X(x)3) CCZ (X(x)3)(H(x)3) = I - 2|s><s| = -D  (global sign -1, unobservable)
+
+Oracle O = diag((-1)^f(i)), i = 0..7 (index = P + 2A + 4W):
+    diag = [1, 1, 1, -1, -1, 1, -1, 1]
+O|s>  (phase-marked):
+    [+0.3536]   |000>  {P:0,A:0,W:0}  
+    [+0.3536]   |001>  {P:1,A:0,W:0}  
+    [+0.3536]   |010>  {P:0,A:1,W:0}  
+    [-0.3536]   |011>  {P:1,A:1,W:0}  valid
+    [-0.3536]   |100>  {P:0,A:0,W:1}  valid
+    [+0.3536]   |101>  {P:1,A:0,W:1}  
+    [-0.3536]   |110>  {P:0,A:1,W:1}  valid
+    [+0.3536]   |111>  {P:1,A:1,W:1}  
+
+Diffuser D = 2|s><s| - I  (every entry of |s><s| is 1/8, so D = (1/4)J - I):
+    [-0.750 +0.250 +0.250 +0.250 +0.250 +0.250 +0.250 +0.250]
+    [+0.250 -0.750 +0.250 +0.250 +0.250 +0.250 +0.250 +0.250]
+    [+0.250 +0.250 -0.750 +0.250 +0.250 +0.250 +0.250 +0.250]
+    [+0.250 +0.250 +0.250 -0.750 +0.250 +0.250 +0.250 +0.250]
+    [+0.250 +0.250 +0.250 +0.250 -0.750 +0.250 +0.250 +0.250]
+    [+0.250 +0.250 +0.250 +0.250 +0.250 -0.750 +0.250 +0.250]
+    [+0.250 +0.250 +0.250 +0.250 +0.250 +0.250 -0.750 +0.250]
+    [+0.250 +0.250 +0.250 +0.250 +0.250 +0.250 +0.250 -0.750]
+D O|s>  (after one Grover iteration):
+    [-0.1768]   |000>  {P:0,A:0,W:0}  
+    [-0.1768]   |001>  {P:1,A:0,W:0}  
+    [-0.1768]   |010>  {P:0,A:1,W:0}  
+    [+0.5303]   |011>  {P:1,A:1,W:0}  valid
+    [+0.5303]   |100>  {P:0,A:0,W:1}  valid
+    [-0.1768]   |101>  {P:1,A:0,W:1}  
+    [+0.5303]   |110>  {P:0,A:1,W:1}  valid
+    [-0.1768]   |111>  {P:1,A:1,W:1}  
+success = sum of squares of valid entries = 0.84375
+
+Same thing in the 2-D basis {|U>, |M>}  (|M> = sum of valid / sqrt3, |U> = sum of invalid / sqrt5):
+    |s> = cos(theta)|U> + sin(theta)|M>,  theta = asin(sqrt(3/8)) = 37.76 deg
+    G restricted to that plane  (B^T G B, B = [U M]):
+    [+0.2500 -0.9682]
+    [+0.9682 +0.2500]
+    = rotation by 2theta = 75.52 deg:  [[cos2θ, -sin2θ], [sin2θ, cos2θ]] = [[+0.2500, -0.9682], [+0.9682, +0.2500]]
+    eigenvalues = [(0.25+0.9682j), (0.25-0.9682j)]  (= e^(±i 2θ), |λ| = 1)
+
+Success after t iterations from the matrix power  G^t|s>  vs the formula sin^2((2t+1)θ):
+    K=3 (original): t=0: 0.3750/0.3750 t=1: 0.8437/0.8438 t=2: 0.0234/0.0234 t=3: 0.9902/0.9902 t=4: 0.1187/0.1187
+    K=2 (policy A): t=0: 0.2500/0.2500 t=1: 1.0000/1.0000 t=2: 0.2500/0.2500 t=3: 0.2500/0.2500 t=4: 1.0000/1.0000
+    K=1 (policy ~W): t=0: 0.1250/0.1250 t=1: 0.7812/0.7813 t=2: 0.9453/0.9453 t=3: 0.3301/0.3301 t=4: 0.0122/0.0122
+
+Cross-checks against the real Qiskit circuits:
+    [PASS] H3|000> = |s> (all 1/sqrt8)
+    [PASS] manual oracle V1 block == O
+    [PASS] manual oracle V2 block == O
+    [PASS] diffuser circuit == -(2|s><s| - I)
+    [PASS] G is unitary (G^T G = I)
+    [PASS] V1 gate-matrix product (256x256) block == O, helpers return to |0>
+    [PASS] V2 gate-matrix product (32x32) block == O
+    [PASS] V1 gate-matrix product == Qiskit Operator(V1)
+    [PASS] H X CCZ X H gate product == -(2|s><s| - I)
+    [PASS] BROKEN oracle block == 0 matrix (garbage leaves the helpers-|0> subspace)
+    [PASS] H.CCX.H == CCZ
+    [PASS] X|-> = -|->  (kick-back eigenvalue)
+    [PASS] Qiskit statevector t=0 == G^t|s> (up to global sign)
+    [PASS] Qiskit statevector t=1 == G^t|s> (up to global sign)
+    [PASS] Qiskit statevector t=2 == G^t|s> (up to global sign)
+    [PASS] Qiskit statevector t=3 == G^t|s> (up to global sign)
+    [PASS] Qiskit statevector t=4 == G^t|s> (up to global sign)
+
+====================================================================================================
 COST DISCUSSION (8, G)
 ====================================================================================================
 COST DISCUSSION (honest)

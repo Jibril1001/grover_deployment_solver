@@ -147,6 +147,13 @@ the oracle a pure phase  |x> -> (-1)^f(x)|x>.
     section("06_ablation.txt", "ADDITION D  UNCOMPUTATION ABLATION", body)
     plots.plot_ablation(ok["counts"], br["counts"], ok["success"], br["success"], pred1, OUT / "ablation.png")
 
+    # ----------------------------------------------------- linear algebra
+    from src import linalg
+    section("08_linear_algebra.txt", "LINEAR-ALGEBRA VIEW: column vectors, O, D = 2|s><s| - I, G = D O",
+            linalg.report())
+    plots.plot_linear_algebra(OUT / "linear_algebra.png")
+    plots.plot_gate_matrices(OUT / "gate_matrices.png")
+
     # --------------------------------------------------------------- cost
     oc = mo.resource_counts(v1)
     full = grover.grover_circuit(v1, 1)
