@@ -1,0 +1,30 @@
+====================================================================================================
+TASK A.3  GROVER SEARCH (AerSimulator)
+====================================================================================================
+Grover with manual oracle V1: K=3, N=8, theta=37.76 deg, t=1, shots=8192, seed=1234
+Qiskit key(WAP) |     config      |  count |   freq | valid?
+      110       |  {P:0,A:1,W:1}  |   2312 |  0.282 | YES
+      100       |  {P:0,A:0,W:1}  |   2298 |  0.281 | YES
+      011       |  {P:1,A:1,W:0}  |   2293 |  0.280 | YES
+      111       |  {P:1,A:1,W:1}  |    280 |  0.034 | no
+      001       |  {P:1,A:0,W:0}  |    262 |  0.032 | no
+      000       |  {P:0,A:0,W:0}  |    258 |  0.031 | no
+      101       |  {P:1,A:0,W:1}  |    248 |  0.030 | no
+      010       |  {P:0,A:1,W:0}  |    241 |  0.029 | no
+measured success fraction = 0.8427
+most frequent key '110' (W A P) -> {P:0,A:1,W:1}
+classical re-check of that configuration: VALID
+
+Grover with manual oracle V2: K=3, N=8, theta=37.76 deg, t=1, shots=8192, seed=1234
+Qiskit key(WAP) |     config      |  count |   freq | valid?
+      110       |  {P:0,A:1,W:1}  |   2312 |  0.282 | YES
+      100       |  {P:0,A:0,W:1}  |   2298 |  0.281 | YES
+      011       |  {P:1,A:1,W:0}  |   2293 |  0.280 | YES
+      111       |  {P:1,A:1,W:1}  |    280 |  0.034 | no
+      001       |  {P:1,A:0,W:0}  |    262 |  0.032 | no
+      000       |  {P:0,A:0,W:0}  |    258 |  0.031 | no
+      101       |  {P:1,A:0,W:1}  |    248 |  0.030 | no
+      010       |  {P:0,A:1,W:0}  |    241 |  0.029 | no
+measured success fraction = 0.8427
+most frequent key '110' (W A P) -> {P:0,A:1,W:1}
+classical re-check of that configuration: VALID

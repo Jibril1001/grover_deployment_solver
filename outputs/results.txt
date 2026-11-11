@@ -1,0 +1,377 @@
+Grover Solver for Deployment Configuration
+qiskit 2.6.2 | qiskit-aer 0.18.2 | numpy 2.5.4 | seed 1234 | shots 8192
+Variable/bit order: q0=P, q1=A, q2=W; Qiskit prints bitstrings as W A P (q2 q1 q0).
+
+====================================================================================================
+TASK A.1  CLASSICAL CHECKER
+====================================================================================================
+TASK A.1  Classical checker + exhaustive enumeration
+Qubit map: q0=P, q1=A, q2=W.  Qiskit prints bitstrings as  W A P  (q2 q1 q0).
+
+idx | Qiskit(WAP) | P A W |     R1     R2     R3 | valid | config
+-----------------------------------------------------------------
+  0 |     000     | 0 0 0 |      0      1      1 |    no | {P:0,A:0,W:0}
+  1 |     001     | 1 0 0 |      1      0      1 |    no | {P:1,A:0,W:0}
+  2 |     010     | 0 1 0 |      0      1      1 |    no | {P:0,A:1,W:0}
+  3 |     011     | 1 1 0 |      1      1      1 |   YES | {P:1,A:1,W:0}
+  4 |     100     | 0 0 1 |      1      1      1 |   YES | {P:0,A:0,W:1}
+  5 |     101     | 1 0 1 |      1      0      0 |    no | {P:1,A:0,W:1}
+  6 |     110     | 0 1 1 |      1      1      1 |   YES | {P:0,A:1,W:1}
+  7 |     111     | 1 1 1 |      1      1      0 |    no | {P:1,A:1,W:1}
+
+K = 3 valid configurations out of N = 8:
+  {P:1,A:1,W:0}   P-A-W order '110'   Qiskit key '011'
+  {P:0,A:0,W:1}   P-A-W order '001'   Qiskit key '100'
+  {P:0,A:1,W:1}   P-A-W order '011'   Qiskit key '110'
+  -> in P-A-W reading order the valid set is {001, 011, 110};
+     the SAME states as Qiskit keys (W-A-P) are {100, 110, 011}.
+
+====================================================================================================
+TASK A.2  MANUAL PHASE ORACLES (X, CX, CCX only)
+====================================================================================================
+--- Oracle V1 (helpers r1,r2,r3 + AND helper + |-> kick, explicit reverse uncompute) ---
+Qiskit(WAP) |     config      | valid | phase | input kept | helpers |0> | result
+---------------------------------------------------------------------------------
+    000     |  {P:0,A:0,W:0}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    001     |  {P:1,A:0,W:0}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    010     |  {P:0,A:1,W:0}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    011     |  {P:1,A:1,W:0}  |  YES  |  -1.0 |    yes     |     yes     | PASS
+    100     |  {P:0,A:0,W:1}  |  YES  |  -1.0 |    yes     |     yes     | PASS
+    101     |  {P:1,A:0,W:1}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    110     |  {P:0,A:1,W:1}  |  YES  |  -1.0 |    yes     |     yes     | PASS
+    111     |  {P:1,A:1,W:1}  |   no  |  +1.0 |    yes     |     yes     | PASS
+overall: PASS (8/8 rows)
+
+--- Oracle V2 (minimal: W' = P xor W = R1&R3, helper r2) ---
+Qiskit(WAP) |     config      | valid | phase | input kept | helpers |0> | result
+---------------------------------------------------------------------------------
+    000     |  {P:0,A:0,W:0}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    001     |  {P:1,A:0,W:0}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    010     |  {P:0,A:1,W:0}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    011     |  {P:1,A:1,W:0}  |  YES  |  -1.0 |    yes     |     yes     | PASS
+    100     |  {P:0,A:0,W:1}  |  YES  |  -1.0 |    yes     |     yes     | PASS
+    101     |  {P:1,A:0,W:1}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    110     |  {P:0,A:1,W:1}  |  YES  |  -1.0 |    yes     |     yes     | PASS
+    111     |  {P:1,A:1,W:1}  |   no  |  +1.0 |    yes     |     yes     | PASS
+overall: PASS (8/8 rows)
+
+--- BROKEN oracle (V1 with the uncompute step skipped) -- expected to FAIL cleanup ---
+Qiskit(WAP) |     config      | valid | phase | input kept | helpers |0> | result
+---------------------------------------------------------------------------------
+    000     |  {P:0,A:0,W:0}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    001     |  {P:1,A:0,W:0}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    010     |  {P:0,A:1,W:0}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    011     |  {P:1,A:1,W:0}  |  YES  |  -1.0 |    yes     |     NO      | FAIL
+    100     |  {P:0,A:0,W:1}  |  YES  |  -1.0 |    yes     |     NO      | FAIL
+    101     |  {P:1,A:0,W:1}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    110     |  {P:0,A:1,W:1}  |  YES  |  -1.0 |    yes     |     NO      | FAIL
+    111     |  {P:1,A:1,W:1}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+overall: FAIL (0/8 rows)
+
+Resource comparison:
+oracle                  qubits        ancillas               x              cx             ccx               h     total_gates           depth cx_after_decomp
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+V1                           8               5              20               0               9               2              31              13              54
+V2                           5               2               8               2               3               2              15               7              20
+BROKEN                       8               5              11               0               5               2              18               9              30
+(h = the 2 H gates that prepare/unprepare the |-> kick qubit; cx_after_decomp = CX count after decomposing every CCX into {CX,U}, 6 CX per CCX)
+
+====================================================================================================
+TASK A.3  GROVER SEARCH (AerSimulator)
+====================================================================================================
+Grover with manual oracle V1: K=3, N=8, theta=37.76 deg, t=1, shots=8192, seed=1234
+Qiskit key(WAP) |     config      |  count |   freq | valid?
+      110       |  {P:0,A:1,W:1}  |   2312 |  0.282 | YES
+      100       |  {P:0,A:0,W:1}  |   2298 |  0.281 | YES
+      011       |  {P:1,A:1,W:0}  |   2293 |  0.280 | YES
+      111       |  {P:1,A:1,W:1}  |    280 |  0.034 | no
+      001       |  {P:1,A:0,W:0}  |    262 |  0.032 | no
+      000       |  {P:0,A:0,W:0}  |    258 |  0.031 | no
+      101       |  {P:1,A:0,W:1}  |    248 |  0.030 | no
+      010       |  {P:0,A:1,W:0}  |    241 |  0.029 | no
+measured success fraction = 0.8427
+most frequent key '110' (W A P) -> {P:0,A:1,W:1}
+classical re-check of that configuration: VALID
+
+Grover with manual oracle V2: K=3, N=8, theta=37.76 deg, t=1, shots=8192, seed=1234
+Qiskit key(WAP) |     config      |  count |   freq | valid?
+      110       |  {P:0,A:1,W:1}  |   2312 |  0.282 | YES
+      100       |  {P:0,A:0,W:1}  |   2298 |  0.281 | YES
+      011       |  {P:1,A:1,W:0}  |   2293 |  0.280 | YES
+      111       |  {P:1,A:1,W:1}  |    280 |  0.034 | no
+      001       |  {P:1,A:0,W:0}  |    262 |  0.032 | no
+      000       |  {P:0,A:0,W:0}  |    258 |  0.031 | no
+      101       |  {P:1,A:0,W:1}  |    248 |  0.030 | no
+      010       |  {P:0,A:1,W:0}  |    241 |  0.029 | no
+measured success fraction = 0.8427
+most frequent key '110' (W A P) -> {P:0,A:1,W:1}
+classical re-check of that configuration: VALID
+
+====================================================================================================
+TASK B.4  EXTRA POLICY + PhaseOracleGate
+====================================================================================================
+=== policy '~W'  (canonical: ~W) ===
+combined expression: (P | W) & (~P | A) & ~(P & W) & (~W)
+exhaustive classical truth table (R1 & R2 & R3 & policy):
+idx | Qiskit(WAP) | P A W |     R1     R2     R3 policy | valid | config
+------------------------------------------------------------------------
+  0 |     000     | 0 0 0 |      0      1      1      1 |    no | {P:0,A:0,W:0}
+  1 |     001     | 1 0 0 |      1      0      1      1 |    no | {P:1,A:0,W:0}
+  2 |     010     | 0 1 0 |      0      1      1      1 |    no | {P:0,A:1,W:0}
+  3 |     011     | 1 1 0 |      1      1      1      1 |   YES | {P:1,A:1,W:0}
+  4 |     100     | 0 0 1 |      1      1      1      0 |    no | {P:0,A:0,W:1}
+  5 |     101     | 1 0 1 |      1      0      0      0 |    no | {P:1,A:0,W:1}
+  6 |     110     | 0 1 1 |      1      1      1      0 |    no | {P:0,A:1,W:1}
+  7 |     111     | 1 1 1 |      1      1      0      0 |    no | {P:1,A:1,W:1}
+K = 1
+solutions: {P:1,A:1,W:0} [key 011]
+PhaseOracleGate diagonal vs classical (-1)^f, all 8 entries, q0=P q1=A q2=W: MATCH
+diagonal = [1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0]  (index i = P + 2A + 4W)
+theta = 20.70 deg  ->  t = 2
+Qiskit key(WAP) |     config      |  count |   freq | valid?
+      011       |  {P:1,A:1,W:0}  |   7714 |  0.942 | YES
+      010       |  {P:0,A:1,W:0}  |     76 |  0.009 | no
+      110       |  {P:0,A:1,W:1}  |     74 |  0.009 | no
+      000       |  {P:0,A:0,W:0}  |     71 |  0.009 | no
+      111       |  {P:1,A:1,W:1}  |     67 |  0.008 | no
+      100       |  {P:0,A:0,W:1}  |     65 |  0.008 | no
+      101       |  {P:1,A:0,W:1}  |     64 |  0.008 | no
+      001       |  {P:1,A:0,W:0}  |     61 |  0.007 | no
+measured success = 0.9417
+answer: {P:1,A:1,W:0}  classical re-check: VALID
+
+=== policy 'A'  (canonical: A) ===
+combined expression: (P | W) & (~P | A) & ~(P & W) & (A)
+exhaustive classical truth table (R1 & R2 & R3 & policy):
+idx | Qiskit(WAP) | P A W |     R1     R2     R3 policy | valid | config
+------------------------------------------------------------------------
+  0 |     000     | 0 0 0 |      0      1      1      0 |    no | {P:0,A:0,W:0}
+  1 |     001     | 1 0 0 |      1      0      1      0 |    no | {P:1,A:0,W:0}
+  2 |     010     | 0 1 0 |      0      1      1      1 |    no | {P:0,A:1,W:0}
+  3 |     011     | 1 1 0 |      1      1      1      1 |   YES | {P:1,A:1,W:0}
+  4 |     100     | 0 0 1 |      1      1      1      0 |    no | {P:0,A:0,W:1}
+  5 |     101     | 1 0 1 |      1      0      0      0 |    no | {P:1,A:0,W:1}
+  6 |     110     | 0 1 1 |      1      1      1      1 |   YES | {P:0,A:1,W:1}
+  7 |     111     | 1 1 1 |      1      1      0      1 |    no | {P:1,A:1,W:1}
+K = 2
+solutions: {P:1,A:1,W:0} [key 011], {P:0,A:1,W:1} [key 110]
+PhaseOracleGate diagonal vs classical (-1)^f, all 8 entries, q0=P q1=A q2=W: MATCH
+diagonal = [1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0]  (index i = P + 2A + 4W)
+theta = 30.00 deg  ->  t = 1
+Qiskit key(WAP) |     config      |  count |   freq | valid?
+      011       |  {P:1,A:1,W:0}  |   4099 |  0.500 | YES
+      110       |  {P:0,A:1,W:1}  |   4093 |  0.500 | YES
+measured success = 1.0000
+answer: {P:1,A:1,W:0}  classical re-check: VALID
+
+=== policy 'P & ~A'  (canonical: P & ~A) ===
+combined expression: (P | W) & (~P | A) & ~(P & W) & (P & ~A)
+exhaustive classical truth table (R1 & R2 & R3 & policy):
+idx | Qiskit(WAP) | P A W |     R1     R2     R3 policy | valid | config
+------------------------------------------------------------------------
+  0 |     000     | 0 0 0 |      0      1      1      0 |    no | {P:0,A:0,W:0}
+  1 |     001     | 1 0 0 |      1      0      1      1 |    no | {P:1,A:0,W:0}
+  2 |     010     | 0 1 0 |      0      1      1      0 |    no | {P:0,A:1,W:0}
+  3 |     011     | 1 1 0 |      1      1      1      0 |    no | {P:1,A:1,W:0}
+  4 |     100     | 0 0 1 |      1      1      1      0 |    no | {P:0,A:0,W:1}
+  5 |     101     | 1 0 1 |      1      0      0      1 |    no | {P:1,A:0,W:1}
+  6 |     110     | 0 1 1 |      1      1      1      0 |    no | {P:0,A:1,W:1}
+  7 |     111     | 1 1 1 |      1      1      0      0 |    no | {P:1,A:1,W:1}
+K = 0
+RESULT: no configuration exists.
+Proof: the truth table above enumerates all 8 = 2^3 assignments of (P,A,W) and the
+'valid' column is 0 on every row.  Grover was NOT run (nothing to amplify).
+
+Parser rejection demos:
+  Policy 'P and A': REJECTED -> use '&' / '|' instead of 'and' / 'or'
+  Policy 'not W': REJECTED -> use '~' instead of 'not'
+  Policy 'X | P': REJECTED -> unknown variable 'X'; allowed variables are P, A, W (case-sensitive)
+  Policy 'P +  A': REJECTED -> operator Add not allowed; only & | ^ ~ and parentheses
+  Policy "__import__('os')": REJECTED -> function calls are not allowed
+  Policy 'P & ': REJECTED -> invalid syntax in 'P & ' at column 0: invalid syntax
+  Policy '(P | A': REJECTED -> invalid syntax in '(P | A' at column 1: '(' was never closed
+  Policy '1': REJECTED -> constants are not allowed; use only the variables P, A, W
+  Policy 'P.real': REJECTED -> attribute access is not allowed
+  Policy '': REJECTED -> policy is empty
+  Policy 'p & a': REJECTED -> unknown variable 'p'; allowed variables are P, A, W (case-sensitive)
+
+====================================================================================================
+THEORY + EXPERIMENTS (5, 6, E)
+====================================================================================================
+Amplitude walk-through for K=3, N=8  (scaled = amplitude x sqrt(N), so the start is 1)
+step                         | valid scaled | invalid scaled | valid norm | invalid norm
+----------------------------------------------------------------------------------------
+initial                      |       1.0000 |         1.0000 |     0.3536 |       0.3536
+after phase mark (oracle)    |      -1.0000 |         1.0000 |    -0.3536 |       0.3536
+mean amplitude mu            |       0.2500 |         0.2500 |     0.0884 |       0.0884
+after diffuser (2mu - a)     |       1.5000 |        -0.5000 |     0.5303 |      -0.1768
+check normalisation after diffuser: K*v^2 + (N-K)*u^2 = 1.000000
+predicted success after 1 iteration: K * valid^2 = 0.843750  (= sin^2(3 theta) = 0.843750)
+
+K=3: theta = asin(sqrt(3/8)) = 37.761 deg;  pi/(4 theta) - 1/2 = 0.692  ->  t* = 1
+   t=0: angle (2t+1)theta =   37.76 deg   P = sin^2 = 0.3750
+   t=1: angle (2t+1)theta =  113.28 deg   P = sin^2 = 0.8438
+   t=2: angle (2t+1)theta =  188.81 deg   P = sin^2 = 0.0234
+   t=3: angle (2t+1)theta =  264.33 deg   P = sin^2 = 0.9902
+   t=4: angle (2t+1)theta =  339.85 deg   P = sin^2 = 0.1187
+
+Prediction vs measurement: K=3 original requirements, oracle V1
+ t | predicted | measured |  95% CI (Wilson)  |      z | flag
+-------------------------------------------------------------
+ 0 |    0.3750 |   0.3883 | [0.3778, 0.3989] |  +2.49 | ok
+ 1 |    0.8438 |   0.8468 | [0.8388, 0.8544] |  +0.76 | ok
+ 2 |    0.0234 |   0.0247 | [0.0215, 0.0282] |  +0.73 | ok
+ 3 |    0.9902 |   0.9908 | [0.9885, 0.9927] |  +0.56 | ok
+ 4 |    0.1187 |   0.1211 | [0.1142, 0.1283] |  +0.68 | ok
+deviations beyond 3 sigma: 0
+
+Amplitude walk-through for K=2, N=8  (scaled = amplitude x sqrt(N), so the start is 1)
+step                         | valid scaled | invalid scaled | valid norm | invalid norm
+----------------------------------------------------------------------------------------
+initial                      |       1.0000 |         1.0000 |     0.3536 |       0.3536
+after phase mark (oracle)    |      -1.0000 |         1.0000 |    -0.3536 |       0.3536
+mean amplitude mu            |       0.5000 |         0.5000 |     0.1768 |       0.1768
+after diffuser (2mu - a)     |       2.0000 |         0.0000 |     0.7071 |       0.0000
+check normalisation after diffuser: K*v^2 + (N-K)*u^2 = 1.000000
+predicted success after 1 iteration: K * valid^2 = 1.000000  (= sin^2(3 theta) = 1.000000)
+
+K=2: theta = asin(sqrt(2/8)) = 30.000 deg;  pi/(4 theta) - 1/2 = 1.000  ->  t* = 1
+   t=0: angle (2t+1)theta =   30.00 deg   P = sin^2 = 0.2500
+   t=1: angle (2t+1)theta =   90.00 deg   P = sin^2 = 1.0000
+   t=2: angle (2t+1)theta =  150.00 deg   P = sin^2 = 0.2500
+   t=3: angle (2t+1)theta =  210.00 deg   P = sin^2 = 0.2500
+   t=4: angle (2t+1)theta =  270.00 deg   P = sin^2 = 1.0000
+
+Prediction vs measurement: K=2 policy 'A'
+ t | predicted | measured |  95% CI (Wilson)  |      z | flag
+-------------------------------------------------------------
+ 0 |    0.2500 |   0.2460 | [0.2368, 0.2554] |  -0.84 | ok
+ 1 |    1.0000 |   1.0000 | [0.9995, 1.0000] |  +0.00 | ok
+ 2 |    0.2500 |   0.2502 | [0.2410, 0.2597] |  +0.05 | ok
+ 3 |    0.2500 |   0.2396 | [0.2305, 0.2490] |  -2.17 | ok
+ 4 |    1.0000 |   1.0000 | [0.9995, 1.0000] |  +0.00 | ok
+deviations beyond 3 sigma: 0
+
+Amplitude walk-through for K=1, N=8  (scaled = amplitude x sqrt(N), so the start is 1)
+step                         | valid scaled | invalid scaled | valid norm | invalid norm
+----------------------------------------------------------------------------------------
+initial                      |       1.0000 |         1.0000 |     0.3536 |       0.3536
+after phase mark (oracle)    |      -1.0000 |         1.0000 |    -0.3536 |       0.3536
+mean amplitude mu            |       0.7500 |         0.7500 |     0.2652 |       0.2652
+after diffuser (2mu - a)     |       2.5000 |         0.5000 |     0.8839 |       0.1768
+check normalisation after diffuser: K*v^2 + (N-K)*u^2 = 1.000000
+predicted success after 1 iteration: K * valid^2 = 0.781250  (= sin^2(3 theta) = 0.781250)
+
+K=1: theta = asin(sqrt(1/8)) = 20.705 deg;  pi/(4 theta) - 1/2 = 1.673  ->  t* = 2
+   t=0: angle (2t+1)theta =   20.70 deg   P = sin^2 = 0.1250
+   t=1: angle (2t+1)theta =   62.11 deg   P = sin^2 = 0.7813
+   t=2: angle (2t+1)theta =  103.52 deg   P = sin^2 = 0.9453
+   t=3: angle (2t+1)theta =  144.93 deg   P = sin^2 = 0.3301
+   t=4: angle (2t+1)theta =  186.34 deg   P = sin^2 = 0.0122
+
+Prediction vs measurement: K=1 policy '~W'
+ t | predicted | measured |  95% CI (Wilson)  |      z | flag
+-------------------------------------------------------------
+ 0 |    0.1250 |   0.1254 | [0.1184, 0.1327] |  +0.10 | ok
+ 1 |    0.7813 |   0.7777 | [0.7686, 0.7866] |  -0.78 | ok
+ 2 |    0.9453 |   0.9468 | [0.9417, 0.9514] |  +0.58 | ok
+ 3 |    0.3301 |   0.3198 | [0.3098, 0.3300] |  -1.97 | ok
+ 4 |    0.0122 |   0.0107 | [0.0087, 0.0132] |  -1.21 | ok
+deviations beyond 3 sigma: 0
+
+Preferred iteration count  t = max(1, round(pi/(4 theta) - 1/2)),  theta = asin(sqrt(K/N))
+  K=3: theta= 37.76 deg  t=1  P(t)=0.8438
+  K=2: theta= 30.00 deg  t=1  P(t)=1.0000
+  K=1: theta= 20.70 deg  t=2  P(t)=0.9453
+
+Overshoot / periodicity for K=3 (theta = 37.76 deg):
+  t=1 -> (3 theta)  = 113.3 deg, P = 0.844   (just past 90 deg: a slight overshoot already)
+  t=2 -> (5 theta)  = 188.8 deg, P = 0.023   (rotated far PAST |M>: overshoot, near-total failure)
+  t=3 -> (7 theta)  = 264.3 deg, P = 0.990   (the state has swung round to the -|M> side;
+                                               measuring only sees sin^2, so it looks great)
+  t=4 -> (9 theta)  = 339.8 deg, P = 0.119
+Honest reading: t=3 really does give a HIGHER single-shot success (0.990) than t=1 (0.844).
+t=1 is still the preferred choice because
+  * it is what the formula t = round(pi/(4 theta) - 1/2) gives: the FIRST time the state comes
+    close to |M>; t=3 is the second lap of the same rotation;
+  * cost per verified answer: expected oracle calls = t / P(t) -> t=1: 1/0.844 = 1.18,
+    t=3: 3/0.990 = 3.03 (2.6x more), and every answer is re-checked classically anyway,
+    so a rare miss just costs one more cheap shot;
+  * 3x deeper circuits mean 3x more noise on real hardware, and the 'lucky' second lap
+    depends on theta being known exactly: a small error in K or theta is amplified by (2t+1).
+
+
+Iteration strategy: K is counted CLASSICALLY first, then
+  t = max(1, round(pi/(4*theta) - 1/2)),  theta = asin(sqrt(K/N)).
+  If K were unknown we would need a randomized (BBHT exponential search) or a quantum-counting
+  approach; this solver relies on the classical count, which at N=8 already solves the problem.
+
+====================================================================================================
+ADDITION D  UNCOMPUTATION ABLATION
+====================================================================================================
+--- BROKEN oracle check table ---
+Qiskit(WAP) |     config      | valid | phase | input kept | helpers |0> | result
+---------------------------------------------------------------------------------
+    000     |  {P:0,A:0,W:0}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    001     |  {P:1,A:0,W:0}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    010     |  {P:0,A:1,W:0}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    011     |  {P:1,A:1,W:0}  |  YES  |  -1.0 |    yes     |     NO      | FAIL
+    100     |  {P:0,A:0,W:1}  |  YES  |  -1.0 |    yes     |     NO      | FAIL
+    101     |  {P:1,A:0,W:1}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    110     |  {P:0,A:1,W:1}  |  YES  |  -1.0 |    yes     |     NO      | FAIL
+    111     |  {P:1,A:1,W:1}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+overall: FAIL (0/8 rows)
+
+                         correct V1      broken (no uncompute)
+helpers back to |0>?     yes             NO
+purity Tr(rho^2) of the
+ search register after
+ one oracle call on |s>  1.0000          0.2500
+exact P(valid), t=1      0.8437          0.1875
+measured P(valid), t=1   0.8448          0.1830   (95% CI [0.1748, 0.1915])
+predicted (ideal)        0.8438
+broken vs prediction:    z = -164.7 sigma  -> FAR below the predicted 0.844
+
+Why: without uncompute the state after the oracle is  sum_x (-1)^f(x) |x>|g(x)>,  where the
+workspace g(x) = (r1, r2, r3, and) is a function of x.  The workspace now holds which-path
+information, i.e. it is ENTANGLED with the search register (purity 0.250 < 1: the search
+register alone is a mixed state).  The diffuser acts only on the search qubits, so it can only
+make amplitudes interfere inside each group of x that share the same g(x).
+Sectors here: all 3 valid x share g=(1,1,1,1); the invalid ones split into {000,010}, {100},
+{101}, {111} (P-A-W order).  Inversion about the mean inside each tiny sector cannot pump
+amplitude into the valid states: the exact success drops to 0.1875 -- even below the
+no-Grover baseline 3/8 = 0.375.  Uncomputation is what disentangles the workspace and makes
+the oracle a pure phase  |x> -> (-1)^f(x)|x>.
+
+
+====================================================================================================
+COST DISCUSSION (8, G)
+====================================================================================================
+COST DISCUSSION (honest)
+Classical: exhaustive enumeration = N = 8 checker calls, each O(L) with L = 3 rules
+  (~ 7 Boolean literal operations) -> ~ 8 x O(L) elementary operations, and it gives K, every
+  solution, AND a proof when K = 0.
+Grover at t=1 (K=3): 1 oracle call + circuit overhead:
+  oracle V1 alone : {'qubits': 8, 'x': 20, 'cx': 0, 'ccx': 9, 'h': 2, 'total_gates': 31, 'cx_after_decomp': 54}
+  full t=1 circuit: {'qubits': 8, 'ops_after_decomp': {'u': 129, 'cx': 60, 'barrier': 3, 'measure': 3}, 'depth': 93}
+  plus state prep, measurement, repeated shots, and a classical re-check of the answer.
+  And the solver needed K first -- which we obtained by the classical enumeration itself.
+=> At N = 8 there is NO practical advantage: one circuit is already more elementary gates
+   than the whole classical search.
+Scaling: Grover needs ~ (pi/4) sqrt(N/K) oracle calls versus ~N/K classical random checks
+  (N for exhaustive). Quadratic, not exponential, speed-up; it only pays off when N is huge and
+  the oracle is cheap relative to the classical check:
+  n= 3  N=               8  classical exhaustive =                8 checks   Grover (K=1) ~ (pi/4)sqrt(N) =            2 oracle calls
+  n=10  N=           1,024  classical exhaustive =            1,024 checks   Grover (K=1) ~ (pi/4)sqrt(N) =           25 oracle calls
+  n=20  N=       1,048,576  classical exhaustive =        1,048,576 checks   Grover (K=1) ~ (pi/4)sqrt(N) =          804 oracle calls
+  n=30  N=   1,073,741,824  classical exhaustive =    1,073,741,824 checks   Grover (K=1) ~ (pi/4)sqrt(N) =       25,736 oracle calls
+  n=40  N=1,099,511,627,776  classical exhaustive = 1,099,511,627,776 checks   Grover (K=1) ~ (pi/4)sqrt(N) =      823,550 oracle calls
+Simulator caveat: AerSimulator stores 2^q complex amplitudes for q qubits (here q = 8 for
+  oracle V1 -> 256 amplitudes; q = 5 for V2 -> 32). Simulating Grover classically costs
+  O(2^q) memory and time per gate -- exponentially WORSE than just enumerating the 2^3
+  configurations. Any speed-up claim refers to real quantum hardware, not this simulation.
+Limitation: this solver uses the classical count K to pick t. With K unknown one would use
+  the randomized exponential schedule of Boyer-Brassard-Hoyer-Tapp (pick t uniformly in
+  [0, m), grow m by 6/5 on failure; expected O(sqrt(N/K)) calls) or quantum counting
+  (phase estimation on the Grover operator) to estimate K first.
+

@@ -1,0 +1,87 @@
+====================================================================================================
+TASK B.4  EXTRA POLICY + PhaseOracleGate
+====================================================================================================
+=== policy '~W'  (canonical: ~W) ===
+combined expression: (P | W) & (~P | A) & ~(P & W) & (~W)
+exhaustive classical truth table (R1 & R2 & R3 & policy):
+idx | Qiskit(WAP) | P A W |     R1     R2     R3 policy | valid | config
+------------------------------------------------------------------------
+  0 |     000     | 0 0 0 |      0      1      1      1 |    no | {P:0,A:0,W:0}
+  1 |     001     | 1 0 0 |      1      0      1      1 |    no | {P:1,A:0,W:0}
+  2 |     010     | 0 1 0 |      0      1      1      1 |    no | {P:0,A:1,W:0}
+  3 |     011     | 1 1 0 |      1      1      1      1 |   YES | {P:1,A:1,W:0}
+  4 |     100     | 0 0 1 |      1      1      1      0 |    no | {P:0,A:0,W:1}
+  5 |     101     | 1 0 1 |      1      0      0      0 |    no | {P:1,A:0,W:1}
+  6 |     110     | 0 1 1 |      1      1      1      0 |    no | {P:0,A:1,W:1}
+  7 |     111     | 1 1 1 |      1      1      0      0 |    no | {P:1,A:1,W:1}
+K = 1
+solutions: {P:1,A:1,W:0} [key 011]
+PhaseOracleGate diagonal vs classical (-1)^f, all 8 entries, q0=P q1=A q2=W: MATCH
+diagonal = [1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0]  (index i = P + 2A + 4W)
+theta = 20.70 deg  ->  t = 2
+Qiskit key(WAP) |     config      |  count |   freq | valid?
+      011       |  {P:1,A:1,W:0}  |   7714 |  0.942 | YES
+      010       |  {P:0,A:1,W:0}  |     76 |  0.009 | no
+      110       |  {P:0,A:1,W:1}  |     74 |  0.009 | no
+      000       |  {P:0,A:0,W:0}  |     71 |  0.009 | no
+      111       |  {P:1,A:1,W:1}  |     67 |  0.008 | no
+      100       |  {P:0,A:0,W:1}  |     65 |  0.008 | no
+      101       |  {P:1,A:0,W:1}  |     64 |  0.008 | no
+      001       |  {P:1,A:0,W:0}  |     61 |  0.007 | no
+measured success = 0.9417
+answer: {P:1,A:1,W:0}  classical re-check: VALID
+
+=== policy 'A'  (canonical: A) ===
+combined expression: (P | W) & (~P | A) & ~(P & W) & (A)
+exhaustive classical truth table (R1 & R2 & R3 & policy):
+idx | Qiskit(WAP) | P A W |     R1     R2     R3 policy | valid | config
+------------------------------------------------------------------------
+  0 |     000     | 0 0 0 |      0      1      1      0 |    no | {P:0,A:0,W:0}
+  1 |     001     | 1 0 0 |      1      0      1      0 |    no | {P:1,A:0,W:0}
+  2 |     010     | 0 1 0 |      0      1      1      1 |    no | {P:0,A:1,W:0}
+  3 |     011     | 1 1 0 |      1      1      1      1 |   YES | {P:1,A:1,W:0}
+  4 |     100     | 0 0 1 |      1      1      1      0 |    no | {P:0,A:0,W:1}
+  5 |     101     | 1 0 1 |      1      0      0      0 |    no | {P:1,A:0,W:1}
+  6 |     110     | 0 1 1 |      1      1      1      1 |   YES | {P:0,A:1,W:1}
+  7 |     111     | 1 1 1 |      1      1      0      1 |    no | {P:1,A:1,W:1}
+K = 2
+solutions: {P:1,A:1,W:0} [key 011], {P:0,A:1,W:1} [key 110]
+PhaseOracleGate diagonal vs classical (-1)^f, all 8 entries, q0=P q1=A q2=W: MATCH
+diagonal = [1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0]  (index i = P + 2A + 4W)
+theta = 30.00 deg  ->  t = 1
+Qiskit key(WAP) |     config      |  count |   freq | valid?
+      011       |  {P:1,A:1,W:0}  |   4099 |  0.500 | YES
+      110       |  {P:0,A:1,W:1}  |   4093 |  0.500 | YES
+measured success = 1.0000
+answer: {P:1,A:1,W:0}  classical re-check: VALID
+
+=== policy 'P & ~A'  (canonical: P & ~A) ===
+combined expression: (P | W) & (~P | A) & ~(P & W) & (P & ~A)
+exhaustive classical truth table (R1 & R2 & R3 & policy):
+idx | Qiskit(WAP) | P A W |     R1     R2     R3 policy | valid | config
+------------------------------------------------------------------------
+  0 |     000     | 0 0 0 |      0      1      1      0 |    no | {P:0,A:0,W:0}
+  1 |     001     | 1 0 0 |      1      0      1      1 |    no | {P:1,A:0,W:0}
+  2 |     010     | 0 1 0 |      0      1      1      0 |    no | {P:0,A:1,W:0}
+  3 |     011     | 1 1 0 |      1      1      1      0 |    no | {P:1,A:1,W:0}
+  4 |     100     | 0 0 1 |      1      1      1      0 |    no | {P:0,A:0,W:1}
+  5 |     101     | 1 0 1 |      1      0      0      1 |    no | {P:1,A:0,W:1}
+  6 |     110     | 0 1 1 |      1      1      1      0 |    no | {P:0,A:1,W:1}
+  7 |     111     | 1 1 1 |      1      1      0      0 |    no | {P:1,A:1,W:1}
+K = 0
+RESULT: no configuration exists.
+Proof: the truth table above enumerates all 8 = 2^3 assignments of (P,A,W) and the
+'valid' column is 0 on every row.  Grover was NOT run (nothing to amplify).
+
+Parser rejection demos:
+  Policy 'P and A': REJECTED -> use '&' / '|' instead of 'and' / 'or'
+  Policy 'not W': REJECTED -> use '~' instead of 'not'
+  Policy 'X | P': REJECTED -> unknown variable 'X'; allowed variables are P, A, W (case-sensitive)
+  Policy 'P +  A': REJECTED -> operator Add not allowed; only & | ^ ~ and parentheses
+  Policy "__import__('os')": REJECTED -> function calls are not allowed
+  Policy 'P & ': REJECTED -> invalid syntax in 'P & ' at column 0: invalid syntax
+  Policy '(P | A': REJECTED -> invalid syntax in '(P | A' at column 1: '(' was never closed
+  Policy '1': REJECTED -> constants are not allowed; use only the variables P, A, W
+  Policy 'P.real': REJECTED -> attribute access is not allowed
+  Policy '': REJECTED -> policy is empty
+  Policy 'p & a': REJECTED -> unknown variable 'p'; allowed variables are P, A, W (case-sensitive)

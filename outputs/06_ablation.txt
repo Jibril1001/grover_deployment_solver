@@ -1,0 +1,37 @@
+====================================================================================================
+ADDITION D  UNCOMPUTATION ABLATION
+====================================================================================================
+--- BROKEN oracle check table ---
+Qiskit(WAP) |     config      | valid | phase | input kept | helpers |0> | result
+---------------------------------------------------------------------------------
+    000     |  {P:0,A:0,W:0}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    001     |  {P:1,A:0,W:0}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    010     |  {P:0,A:1,W:0}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    011     |  {P:1,A:1,W:0}  |  YES  |  -1.0 |    yes     |     NO      | FAIL
+    100     |  {P:0,A:0,W:1}  |  YES  |  -1.0 |    yes     |     NO      | FAIL
+    101     |  {P:1,A:0,W:1}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    110     |  {P:0,A:1,W:1}  |  YES  |  -1.0 |    yes     |     NO      | FAIL
+    111     |  {P:1,A:1,W:1}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+overall: FAIL (0/8 rows)
+
+                         correct V1      broken (no uncompute)
+helpers back to |0>?     yes             NO
+purity Tr(rho^2) of the
+ search register after
+ one oracle call on |s>  1.0000          0.2500
+exact P(valid), t=1      0.8437          0.1875
+measured P(valid), t=1   0.8448          0.1830   (95% CI [0.1748, 0.1915])
+predicted (ideal)        0.8438
+broken vs prediction:    z = -164.7 sigma  -> FAR below the predicted 0.844
+
+Why: without uncompute the state after the oracle is  sum_x (-1)^f(x) |x>|g(x)>,  where the
+workspace g(x) = (r1, r2, r3, and) is a function of x.  The workspace now holds which-path
+information, i.e. it is ENTANGLED with the search register (purity 0.250 < 1: the search
+register alone is a mixed state).  The diffuser acts only on the search qubits, so it can only
+make amplitudes interfere inside each group of x that share the same g(x).
+Sectors here: all 3 valid x share g=(1,1,1,1); the invalid ones split into {000,010}, {100},
+{101}, {111} (P-A-W order).  Inversion about the mean inside each tiny sector cannot pump
+amplitude into the valid states: the exact success drops to 0.1875 -- even below the
+no-Grover baseline 3/8 = 0.375.  Uncomputation is what disentangles the workspace and makes
+the oracle a pure phase  |x> -> (-1)^f(x)|x>.
+

@@ -1,0 +1,31 @@
+====================================================================================================
+COST DISCUSSION (8, G)
+====================================================================================================
+COST DISCUSSION (honest)
+Classical: exhaustive enumeration = N = 8 checker calls, each O(L) with L = 3 rules
+  (~ 7 Boolean literal operations) -> ~ 8 x O(L) elementary operations, and it gives K, every
+  solution, AND a proof when K = 0.
+Grover at t=1 (K=3): 1 oracle call + circuit overhead:
+  oracle V1 alone : {'qubits': 8, 'x': 20, 'cx': 0, 'ccx': 9, 'h': 2, 'total_gates': 31, 'cx_after_decomp': 54}
+  full t=1 circuit: {'qubits': 8, 'ops_after_decomp': {'u': 129, 'cx': 60, 'barrier': 3, 'measure': 3}, 'depth': 93}
+  plus state prep, measurement, repeated shots, and a classical re-check of the answer.
+  And the solver needed K first -- which we obtained by the classical enumeration itself.
+=> At N = 8 there is NO practical advantage: one circuit is already more elementary gates
+   than the whole classical search.
+Scaling: Grover needs ~ (pi/4) sqrt(N/K) oracle calls versus ~N/K classical random checks
+  (N for exhaustive). Quadratic, not exponential, speed-up; it only pays off when N is huge and
+  the oracle is cheap relative to the classical check:
+  n= 3  N=               8  classical exhaustive =                8 checks   Grover (K=1) ~ (pi/4)sqrt(N) =            2 oracle calls
+  n=10  N=           1,024  classical exhaustive =            1,024 checks   Grover (K=1) ~ (pi/4)sqrt(N) =           25 oracle calls
+  n=20  N=       1,048,576  classical exhaustive =        1,048,576 checks   Grover (K=1) ~ (pi/4)sqrt(N) =          804 oracle calls
+  n=30  N=   1,073,741,824  classical exhaustive =    1,073,741,824 checks   Grover (K=1) ~ (pi/4)sqrt(N) =       25,736 oracle calls
+  n=40  N=1,099,511,627,776  classical exhaustive = 1,099,511,627,776 checks   Grover (K=1) ~ (pi/4)sqrt(N) =      823,550 oracle calls
+Simulator caveat: AerSimulator stores 2^q complex amplitudes for q qubits (here q = 8 for
+  oracle V1 -> 256 amplitudes; q = 5 for V2 -> 32). Simulating Grover classically costs
+  O(2^q) memory and time per gate -- exponentially WORSE than just enumerating the 2^3
+  configurations. Any speed-up claim refers to real quantum hardware, not this simulation.
+Limitation: this solver uses the classical count K to pick t. With K unknown one would use
+  the randomized exponential schedule of Boyer-Brassard-Hoyer-Tapp (pick t uniformly in
+  [0, m), grow m by 6/5 on failure; expected O(sqrt(N/K)) calls) or quantum counting
+  (phase estimation on the Grover operator) to estimate K first.
+

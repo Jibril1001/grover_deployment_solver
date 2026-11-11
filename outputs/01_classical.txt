@@ -1,0 +1,23 @@
+====================================================================================================
+TASK A.1  CLASSICAL CHECKER
+====================================================================================================
+TASK A.1  Classical checker + exhaustive enumeration
+Qubit map: q0=P, q1=A, q2=W.  Qiskit prints bitstrings as  W A P  (q2 q1 q0).
+
+idx | Qiskit(WAP) | P A W |     R1     R2     R3 | valid | config
+-----------------------------------------------------------------
+  0 |     000     | 0 0 0 |      0      1      1 |    no | {P:0,A:0,W:0}
+  1 |     001     | 1 0 0 |      1      0      1 |    no | {P:1,A:0,W:0}
+  2 |     010     | 0 1 0 |      0      1      1 |    no | {P:0,A:1,W:0}
+  3 |     011     | 1 1 0 |      1      1      1 |   YES | {P:1,A:1,W:0}
+  4 |     100     | 0 0 1 |      1      1      1 |   YES | {P:0,A:0,W:1}
+  5 |     101     | 1 0 1 |      1      0      0 |    no | {P:1,A:0,W:1}
+  6 |     110     | 0 1 1 |      1      1      1 |   YES | {P:0,A:1,W:1}
+  7 |     111     | 1 1 1 |      1      1      0 |    no | {P:1,A:1,W:1}
+
+K = 3 valid configurations out of N = 8:
+  {P:1,A:1,W:0}   P-A-W order '110'   Qiskit key '011'
+  {P:0,A:0,W:1}   P-A-W order '001'   Qiskit key '100'
+  {P:0,A:1,W:1}   P-A-W order '011'   Qiskit key '110'
+  -> in P-A-W reading order the valid set is {001, 011, 110};
+     the SAME states as Qiskit keys (W-A-P) are {100, 110, 011}.

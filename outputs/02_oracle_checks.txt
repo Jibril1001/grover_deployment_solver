@@ -1,0 +1,49 @@
+====================================================================================================
+TASK A.2  MANUAL PHASE ORACLES (X, CX, CCX only)
+====================================================================================================
+--- Oracle V1 (helpers r1,r2,r3 + AND helper + |-> kick, explicit reverse uncompute) ---
+Qiskit(WAP) |     config      | valid | phase | input kept | helpers |0> | result
+---------------------------------------------------------------------------------
+    000     |  {P:0,A:0,W:0}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    001     |  {P:1,A:0,W:0}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    010     |  {P:0,A:1,W:0}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    011     |  {P:1,A:1,W:0}  |  YES  |  -1.0 |    yes     |     yes     | PASS
+    100     |  {P:0,A:0,W:1}  |  YES  |  -1.0 |    yes     |     yes     | PASS
+    101     |  {P:1,A:0,W:1}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    110     |  {P:0,A:1,W:1}  |  YES  |  -1.0 |    yes     |     yes     | PASS
+    111     |  {P:1,A:1,W:1}  |   no  |  +1.0 |    yes     |     yes     | PASS
+overall: PASS (8/8 rows)
+
+--- Oracle V2 (minimal: W' = P xor W = R1&R3, helper r2) ---
+Qiskit(WAP) |     config      | valid | phase | input kept | helpers |0> | result
+---------------------------------------------------------------------------------
+    000     |  {P:0,A:0,W:0}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    001     |  {P:1,A:0,W:0}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    010     |  {P:0,A:1,W:0}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    011     |  {P:1,A:1,W:0}  |  YES  |  -1.0 |    yes     |     yes     | PASS
+    100     |  {P:0,A:0,W:1}  |  YES  |  -1.0 |    yes     |     yes     | PASS
+    101     |  {P:1,A:0,W:1}  |   no  |  +1.0 |    yes     |     yes     | PASS
+    110     |  {P:0,A:1,W:1}  |  YES  |  -1.0 |    yes     |     yes     | PASS
+    111     |  {P:1,A:1,W:1}  |   no  |  +1.0 |    yes     |     yes     | PASS
+overall: PASS (8/8 rows)
+
+--- BROKEN oracle (V1 with the uncompute step skipped) -- expected to FAIL cleanup ---
+Qiskit(WAP) |     config      | valid | phase | input kept | helpers |0> | result
+---------------------------------------------------------------------------------
+    000     |  {P:0,A:0,W:0}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    001     |  {P:1,A:0,W:0}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    010     |  {P:0,A:1,W:0}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    011     |  {P:1,A:1,W:0}  |  YES  |  -1.0 |    yes     |     NO      | FAIL
+    100     |  {P:0,A:0,W:1}  |  YES  |  -1.0 |    yes     |     NO      | FAIL
+    101     |  {P:1,A:0,W:1}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+    110     |  {P:0,A:1,W:1}  |  YES  |  -1.0 |    yes     |     NO      | FAIL
+    111     |  {P:1,A:1,W:1}  |   no  |  +1.0 |    yes     |     NO      | FAIL
+overall: FAIL (0/8 rows)
+
+Resource comparison:
+oracle                  qubits        ancillas               x              cx             ccx               h     total_gates           depth cx_after_decomp
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+V1                           8               5              20               0               9               2              31              13              54
+V2                           5               2               8               2               3               2              15               7              20
+BROKEN                       8               5              11               0               5               2              18               9              30
+(h = the 2 H gates that prepare/unprepare the |-> kick qubit; cx_after_decomp = CX count after decomposing every CCX into {CX,U}, 6 CX per CCX)
